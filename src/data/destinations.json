@@ -1,0 +1,120 @@
+[
+    {
+        "id": "rajasthan-heritage",
+        "name": "Rajasthan",
+        "cities": [
+            "Jaipur",
+            "Jodhpur",
+            "Jaisalmer"
+        ],
+        "state": "Rajasthan",
+        "region": "North-West",
+        "best_months": [
+            "October",
+            "November",
+            "December",
+            "January",
+            "February",
+            "March"
+        ],
+        "type": [
+            "Heritage",
+            "Cultural",
+            "Desert"
+        ],
+        "budget_per_day": 3500,
+        "permits_required": [],
+        "local_food": [
+            "Dal Baati Churma",
+            "Laal Maas",
+            "Gatte ki Sabzi",
+            "Piaz Kachori"
+        ],
+        "hidden_gems": [
+            "Abhaneri Stepwell",
+            "Chandelao Village",
+            "Bishnoi Village Safari"
+        ],
+        "description": "The land of kings, famous for its majestic forts, palaces, and vibrant desert culture."
+    },
+    {
+        "id": "kerala-backwaters",
+        "name": "Kerala",
+        "cities": [
+            "Munnar",
+            "Alleppey",
+            "Wayanad",
+            "Varkala"
+        ],
+        "state": "Kerala",
+        "region": "South",
+        "best_months": [
+            "September",
+            "October",
+            "November",
+            "December",
+            "January",
+            "February",
+            "March"
+        ],
+        "type": [
+            "Nature",
+            "Backwaters",
+            "Coastal",
+            "Spiritual"
+        ],
+        "budget_per_day": 3000,
+        "permits_required": [],
+        "local_food": [
+            "Appam with Stew",
+            "Kerala Fish Curry",
+            "Karimeen Pollichathu",
+            "Sadya"
+        ],
+        "hidden_gems": [
+            "Marari Beach",
+            "Nelliyampathy Hills",
+            "Muzhappilangad Drive-in Beach"
+        ],
+        "description": "God's Own Country, known for its serene backwaters, tea plantations, and lush greenery."
+    },
+    {
+        "id": "ladakh-adventure",
+        "name": "Ladakh",
+        "cities": [
+            "Leh",
+            "Nubra Valley",
+            "Pangong Tso"
+        ],
+        "state": "Ladakh",
+        "region": "North",
+        "best_months": [
+            "May",
+            "June",
+            "July",
+            "August",
+            "September"
+        ],
+        "type": [
+            "Adventure",
+            "Offbeat",
+            "Spiritual"
+        ],
+        "budget_per_day": 5000,
+        "permits_required": [
+            "Inner Line Permit (ILP)"
+        ],
+        "local_food": [
+            "Thukpa",
+            "Momos",
+            "Skyu",
+            "Butter Tea"
+        ],
+        "hidden_gems": [
+            "Turtuk Village",
+            "Lamayuru Moonland",
+            "Hanle Observatory"
+        ],
+        "description": "A high-altitude desert region known for its breathtaking landscapes and Tibetan Buddhist culture."
+    }
+]
