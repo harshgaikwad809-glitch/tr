@@ -3,14 +3,17 @@ import { motion } from 'framer-motion';
 import {
     Calendar, MapPin, Wallet, Utensils, Info,
     ChevronRight, Download, Share2, AlertTriangle,
-    Map as MapIcon, Compass, CheckCircle2
+    Map as MapIcon, Compass, CheckCircle2, Loader2, Sparkles, MapPin as Pin
 } from 'lucide-react';
 import BudgetChart from './BudgetChart';
 import destinationData from '../../data/destinations.json';
+import { generateItinerary } from '../../services/gemini';
 
 const TripDashboard = ({ tripData, resetFlow }) => {
     const [activeTab, setActiveTab] = useState('itinerary');
     const [destination, setDestination] = useState(null);
+    const [itinerary, setItinerary] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         // Basic destination matching
@@ -18,8 +21,19 @@ const TripDashboard = ({ tripData, resetFlow }) => {
             d.name.toLowerCase().includes(tripData.destination.toLowerCase()) ||
             d.cities.some(c => c.toLowerCase().includes(tripData.destination.toLowerCase()))
         );
-        setDestination(match || destinationData[0]); // Fallback to first if no match
-    }, [tripData.destination]);
+        const bestMatch = match || destinationData[0];
+        setDestination(bestMatch);
+
+        // Fetch AI Itinerary
+        const fetchItinerary = async () => {
+            setLoading(true);
+            const data = await generateItinerary(tripData);
+            setItinerary(data);
+            setLoading(false);
+        };
+
+        fetchItinerary();
+    }, [tripData]);
 
     if (!destination) return null;
 
@@ -31,6 +45,19 @@ const TripDashboard = ({ tripData, resetFlow }) => {
         { id: 'local', label: 'Hidden Gems', icon: Compass }
     ];
 
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
+                <div className="relative">
+                    <Loader2 size={64} className="text-india-saffron animate-spin" />
+                    <Sparkles className="absolute -top-2 -right-2 text-india-navy animate-pulse" size={24} />
+                </div>
+                <h2 className="text-3xl font-bold italic text-india-navy">Tailoring your journey...</h2>
+                <p className="text-slate-500 max-w-md">Gemini AI is crafting a personalized itinerary that fits your taste, budget, and age group.</p>
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-6xl mx-auto px-4">
             {/* Welcome & Stats Header */}
@@ -41,7 +68,7 @@ const TripDashboard = ({ tripData, resetFlow }) => {
                         <span className="text-xs font-bold uppercase tracking-widest">Plan Ready for {tripData.travelerType}</span>
                     </div>
                     <h2 className="text-4xl font-bold mb-2">
-                        Your {destination.name} <span className="text-india-saffron">Odyssey</span>
+                        {itinerary?.title || `Your ${destination.name} Odyssey`}
                     </h2>
                     <p className="text-slate-500">
                         {tripData.startDate} to {tripData.endDate} • {tripData.numTravelers} Travelers
@@ -54,21 +81,21 @@ const TripDashboard = ({ tripData, resetFlow }) => {
                     <button className="p-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 transition-all shadow-sm">
                         <Share2 size={20} className="text-slate-600" />
                     </button>
-                    <button onClick={resetFlow} className="btn-primary py-3">
+                    <button onClick={resetFlow} className="btn-primary py-3 px-6">
                         New Plan
                     </button>
                 </div>
             </div>
 
-            {/* Seasonal Warning (if applicable) */}
+            {/* Seasonal Advisory */}
             <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-4">
                 <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
                     <AlertTriangle size={24} />
                 </div>
                 <div>
-                    <h4 className="font-bold text-amber-800">Seasonal Advisory</h4>
+                    <h4 className="font-bold text-amber-800">Travel Advisor</h4>
                     <p className="text-sm text-amber-700">
-                        You're visiting {destination.name} during a great time! Weather is typically {destination.best_months.includes('October') ? 'pleasant' : 'variable'}.
+                        {itinerary?.seasonalAdvice || `You're visiting during a great time! Weather is typically pleasant.`}
                     </p>
                 </div>
             </div>
@@ -82,8 +109,8 @@ const TripDashboard = ({ tripData, resetFlow }) => {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all shrink-0 ${activeTab === tab.id
-                                    ? 'bg-india-navy text-white shadow-lg shadow-india-navy/20'
-                                    : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+                                ? 'bg-india-navy text-white shadow-lg shadow-india-navy/20'
+                                : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
                                 }`}
                         >
                             <Icon size={18} />
@@ -102,27 +129,43 @@ const TripDashboard = ({ tripData, resetFlow }) => {
                         animate={{ opacity: 1, y: 0 }}
                         className="card-glass p-8"
                     >
-                        {activeTab === 'itinerary' && (
+                        {activeTab === 'itinerary' && itinerary && (
                             <div className="space-y-8">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-2xl font-bold">Day-by-Day Plan</h3>
-                                    <div className="px-3 py-1 bg-india-saffron/10 text-india-saffron text-xs font-bold rounded-full">
-                                        AI GENERATED
+                                    <h3 className="text-2xl font-bold">Personalized Itinerary</h3>
+                                    <div className="flex items-center gap-1 px-3 py-1 bg-india-saffron/10 text-india-saffron text-xs font-bold rounded-full">
+                                        <Sparkles size={12} />
+                                        LIVE AI
                                     </div>
                                 </div>
-                                <div className="space-y-6 border-l-2 border-slate-100 ml-4 pl-8 relative">
-                                    {[1, 2, 3].map(day => (
-                                        <div key={day} className="relative">
+                                <div className="space-y-12 border-l-2 border-slate-100 ml-4 pl-8 relative">
+                                    {itinerary.dailyPlan.map(day => (
+                                        <div key={day.day} className="relative">
                                             <div className="absolute -left-[41px] top-0 w-4 h-4 rounded-full bg-india-saffron border-4 border-tripfit-cream" />
-                                            <h4 className="font-bold text-lg mb-2">Day {day}: Explore {destination.cities[day - 1] || destination.cities[0]}</h4>
-                                            <p className="text-slate-600 text-sm leading-relaxed mb-4">
-                                                Visit the major landmarks including {destination.name === 'Rajasthan' ? 'Amber Fort and Hawa Mahal' : 'the local market and scenic viewpoints'}.
-                                                Lunch at a recommended local eatery to try {destination.local_food[0]}.
-                                            </p>
-                                            <div className="flex gap-2">
-                                                <span className="px-3 py-1 bg-slate-100 rounded-md text-xs text-slate-500 font-medium">History</span>
-                                                <span className="px-3 py-1 bg-slate-100 rounded-md text-xs text-slate-500 font-medium">Sightseeing</span>
+                                            <div className="mb-2 flex items-center gap-2">
+                                                <span className="text-india-saffron font-bold text-sm uppercase tracking-widest">Day {day.day}</span>
+                                                <span className="text-slate-300">•</span>
+                                                <span className="text-slate-500 font-medium text-sm">{day.theme}</span>
                                             </div>
+
+                                            <ul className="space-y-3 mb-6">
+                                                {day.activities.map((activity, i) => (
+                                                    <li key={i} className="flex items-start gap-3 group">
+                                                        <Pin size={16} className="mt-1 text-india-navy/30 group-hover:text-india-navy transition-colors" />
+                                                        <span className="text-slate-700 leading-relaxed">{activity}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+
+                                            {day.hiddenGem && (
+                                                <div className="p-4 rounded-xl bg-india-navy/5 border border-india-navy/10 flex items-center gap-3">
+                                                    <Compass className="text-india-navy shrink-0" size={20} />
+                                                    <div className="text-sm">
+                                                        <span className="font-bold text-india-navy">Hidden Gem: </span>
+                                                        <span className="text-slate-600 font-medium">{day.hiddenGem}</span>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -147,8 +190,8 @@ const TripDashboard = ({ tripData, resetFlow }) => {
                                             <span className="text-sm text-slate-500 block">Per Person</span>
                                             <span className="text-xl font-bold text-india-saffron">₹{(parseFloat(tripData.budget) / tripData.numTravelers).toLocaleString()}</span>
                                         </div>
-                                        <p className="text-xs text-slate-400">
-                                            * This is a smart estimate based on your traveler type ({tripData.travelerType}) and age group ({tripData.ageGroup}).
+                                        <p className="text-xs text-slate-400 leading-relaxed">
+                                            * This is a smart estimate adjusted for {tripData.travelerType} travel and the {tripData.ageGroup} age group.
                                         </p>
                                     </div>
                                 </div>
@@ -157,11 +200,11 @@ const TripDashboard = ({ tripData, resetFlow }) => {
 
                         {activeTab === 'food' && (
                             <div className="space-y-6">
-                                <h3 className="text-2xl font-bold">Taste of {destination.name}</h3>
+                                <h3 className="text-2xl font-bold">Local Flavors to Try</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {destination.local_food.map(food => (
                                         <div key={food} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                                            <div className="w-12 h-12 bg-india-saffron/10 rounded-xl flex items-center justify-center text-india-saffron italic font-bold">
+                                            <div className="w-12 h-12 bg-india-saffron/10 rounded-xl flex items-center justify-center text-india-saffron italic font-bold text-xl">
                                                 {food[0]}
                                             </div>
                                             <span className="font-bold text-slate-700">{food}</span>
@@ -173,11 +216,13 @@ const TripDashboard = ({ tripData, resetFlow }) => {
 
                         {activeTab === 'docs' && (
                             <div className="space-y-6">
-                                <h3 className="text-2xl font-bold">Packing & Docs Checklist</h3>
+                                <h3 className="text-2xl font-bold">Checkpoint & Packing</h3>
                                 <div className="space-y-3">
-                                    {['Government ID (Aadhar/Voter ID)', 'Comfortable walking shoes', 'Sunscreen & Sunglasses', ...(destination.permits_required.length > 0 ? destination.permits_required : [])].map(item => (
+                                    {(itinerary?.packingList || ['Aadhar Card', 'Comfortable Shoes', 'Power Bank']).map(item => (
                                         <div key={item} className="flex items-center gap-3 p-4 rounded-xl border border-slate-100 hover:border-india-saffron/20 transition-all cursor-pointer group">
-                                            <div className="w-5 h-5 rounded border-2 border-slate-200 group-hover:border-india-saffron transition-all" />
+                                            <div className="w-5 h-5 rounded border-2 border-slate-200 group-hover:border-india-saffron transition-all flex items-center justify-center">
+                                                <div className="w-2 h-2 rounded-full bg-india-saffron opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            </div>
                                             <span className="text-slate-700 font-medium">{item}</span>
                                         </div>
                                     ))}
@@ -187,14 +232,14 @@ const TripDashboard = ({ tripData, resetFlow }) => {
 
                         {activeTab === 'local' && (
                             <div className="space-y-6">
-                                <h3 className="text-2xl font-bold">Beyond the Tourist Spots</h3>
+                                <h3 className="text-2xl font-bold">Surfaced for You</h3>
                                 <div className="space-y-4">
                                     {destination.hidden_gems.map(gem => (
-                                        <div key={gem} className="p-6 rounded-2xl bg-india-navy text-white relative overflow-hidden group">
+                                        <div key={gem} className="p-6 rounded-2xl bg-india-navy text-white relative overflow-hidden group transition-all hover:bg-india-navy/90">
                                             <MapIcon className="absolute -bottom-4 -right-4 w-24 h-24 opacity-10 group-hover:scale-110 transition-transform" />
                                             <h4 className="text-xl font-bold mb-2">{gem}</h4>
-                                            <p className="text-india-white/70 text-sm">
-                                                A local favorite that offers a more authentic experience of the {destination.name} lifestyle and culture.
+                                            <p className="text-india-white/70 text-sm leading-relaxed">
+                                                An offbeat experience in {destination.name} discovered specifically for your interest in {tripData.interests[0] || 'history'}.
                                             </p>
                                         </div>
                                     ))}
@@ -219,22 +264,15 @@ const TripDashboard = ({ tripData, resetFlow }) => {
                                 <span className="font-bold">{destination.state}</span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="text-slate-500">Region</span>
-                                <span className="font-bold">{destination.region}</span>
+                                <span className="text-slate-500">Travel Type</span>
+                                <span className="font-bold capitalize">{tripData.travelerType}</span>
                             </div>
                             <div className="flex flex-wrap gap-2 mt-4">
                                 {destination.type.map(t => (
-                                    <span key={t} className="px-3 py-1 bg-slate-100 rounded-full text-[10px] font-bold uppercase text-slate-500">{t}</span>
+                                    <span key={t} className="px-3 py-1 bg-india-saffron/5 rounded-full text-[10px] font-bold uppercase text-india-saffron">{t}</span>
                                 ))}
                             </div>
                         </div>
-                    </div>
-
-                    <div className="p-6 rounded-2xl bg-gradient-to-br from-india-saffron to-orange-600 text-white shadow-xl shadow-orange-500/20">
-                        <h4 className="font-bold mb-2">Hackathon Prototype</h4>
-                        <p className="text-xs text-white/80 leading-relaxed">
-                            This portal demonstrates 12 key features for the 2025 Smart Travel challenge. Using Gemini AI for dynamic personalization.
-                        </p>
                     </div>
                 </div>
             </div>
