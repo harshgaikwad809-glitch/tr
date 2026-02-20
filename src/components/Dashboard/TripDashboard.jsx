@@ -14,6 +14,29 @@ const TripDashboard = ({ tripData, resetFlow }) => {
     const [destination, setDestination] = useState(null);
     const [itinerary, setItinerary] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const fetchItinerary = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const data = await generateItinerary(tripData);
+            setItinerary(data);
+        } catch (err) {
+            console.error("Dashboard Fetch Error:", err);
+            setError("Failed to generate your personalized itinerary. Please check your API key or try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const tabs = [
+        { id: 'itinerary', label: 'Itinerary', icon: Calendar },
+        { id: 'budget', label: 'Budget', icon: Wallet },
+        { id: 'food', label: 'Food', icon: Utensils },
+        { id: 'docs', label: 'Docs', icon: Info },
+        { id: 'local', label: 'Hidden Gems', icon: Compass }
+    ];
 
     useEffect(() => {
         // Basic destination matching
@@ -24,26 +47,10 @@ const TripDashboard = ({ tripData, resetFlow }) => {
         const bestMatch = match || destinationData[0];
         setDestination(bestMatch);
 
-        // Fetch AI Itinerary
-        const fetchItinerary = async () => {
-            setLoading(true);
-            const data = await generateItinerary(tripData);
-            setItinerary(data);
-            setLoading(false);
-        };
-
         fetchItinerary();
     }, [tripData]);
 
     if (!destination) return null;
-
-    const tabs = [
-        { id: 'itinerary', label: 'Itinerary', icon: Calendar },
-        { id: 'budget', label: 'Budget', icon: Wallet },
-        { id: 'food', label: 'Food', icon: Utensils },
-        { id: 'docs', label: 'Docs', icon: Info },
-        { id: 'local', label: 'Hidden Gems', icon: Compass }
-    ];
 
     if (loading) {
         return (
@@ -54,6 +61,26 @@ const TripDashboard = ({ tripData, resetFlow }) => {
                 </div>
                 <h2 className="text-3xl font-bold italic text-india-navy">Tailoring your journey...</h2>
                 <p className="text-slate-500 max-w-md">Gemini AI is crafting a personalized itinerary that fits your taste, budget, and age group.</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center text-red-600">
+                    <AlertTriangle size={32} />
+                </div>
+                <h2 className="text-2xl font-bold text-slate-800">Oops! Something went wrong.</h2>
+                <p className="text-slate-500 max-w-md">{error}</p>
+                <div className="flex gap-4">
+                    <button onClick={fetchItinerary} className="btn-primary py-3 px-8">
+                        Retry Generation
+                    </button>
+                    <button onClick={resetFlow} className="px-8 py-3 rounded-xl border-2 border-slate-200 font-bold hover:bg-slate-50">
+                        Go Back
+                    </button>
+                </div>
             </div>
         );
     }
